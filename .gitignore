@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Environment variables / secrets
+.env
+*.env
+config/secrets.py
+api_keys.py
+
+# Data files (cached datasets, raw pulls)
+/data/*.csv
+/data/*.json
+*.sqlite
+*.db
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
