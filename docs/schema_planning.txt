@@ -1,0 +1,41 @@
+players
+  player_id (PK)
+  full_name
+  birth_date
+  bats
+  throws
+  position
+  active
+
+teams
+  team_id (PK)
+  name
+  league
+  division
+
+season_stats
+  stat_id (PK)
+  player_id (FK)
+  team_id (FK)
+  league_id (FK)
+  season
+  games
+  games_missed          -- 162 (or team's scheduled games) minus games played
+  ...stat columns...
+
+contracts
+  contract_id (PK)
+  player_id (FK -> players)
+  signing_year
+  years
+  total_value
+  aav
+
+injuries
+  injury_id (PK)
+  player_id (FK)
+  season
+  games_missed
+  description            -- if available (IL stint type, body part, etc.)
+  stint_start_date
+  stint_end_date
