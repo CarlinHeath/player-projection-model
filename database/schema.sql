@@ -1,11 +1,16 @@
 CREATE TABLE players (
     player_id int PRIMARY KEY,
+    last_name varchar,
+    first_name varchar,
     full_name varchar,
     birth_date date,
     bats char,
     throws char,
     position varchar,
-    active boolean
+    active boolean,
+    debut_date date,
+    height_in_inches int,
+    weight_in_pounds int
 );
 
 CREATE TABLE teams (
