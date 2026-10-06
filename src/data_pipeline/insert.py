@@ -10,7 +10,6 @@ def insert_data(conn, table_name, data_list):
         sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
 
         cursor.execute(sql, dictionary)
-    conn.commit()
 
 def insert_player_data(conn, table_name, dictionary):
     cursor = conn.cursor()
@@ -20,4 +19,3 @@ def insert_player_data(conn, table_name, dictionary):
     sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
 
     cursor.execute(sql, tuple(dictionary.values()))
-    conn.commit()

@@ -20,6 +20,7 @@ connection.commit()
 print("Database created successfully.")
 
 insert.insert_data(connection, "teams", clean.clean_teams_json("data/teams.json"))
+connection.commit()
 
 for player in players:
     player_info = clean.clean_player_info(fetch.fetch_player_info(player))
@@ -33,5 +34,7 @@ for player in players:
 
     if player_pitching_stats:
         insert.insert_data(connection, "pitching_season_stats", player_pitching_stats)
+
+    connection.commit()
 
 connection.close()
