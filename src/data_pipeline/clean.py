@@ -1,4 +1,5 @@
 from datetime import date
+import json
 
 def clean_player_info(original_data):
     dirty_data = original_data["people"][0]
@@ -125,6 +126,23 @@ def clean_pitcher_stats(original_data):
         }]
 
     return season_stats
+
+def clean_teams_json(teams_file_path):
+    with open(teams_file_path, 'r', encoding='utf-8') as file:
+        teams_data = json.load(file)
+
+    dirty_data = teams_data["teams"]
+    teams = []
+
+    for team in dirty_data:
+        teams += [{
+            "team_id": team.get("id"),
+            "name": team.get("name"),
+            "league": _get_nested_data(team, "league", "name"),
+            "division": _get_nested_data(team, "division", "name")
+        }]
+
+    return teams
 
 def _get_nested_data(dictionary, outer_key, inner_key):
     try:
