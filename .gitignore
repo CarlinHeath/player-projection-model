@@ -15,8 +15,12 @@ api_keys.py
 # Data files (cached datasets, raw pulls)
 /data/*.csv
 /data/*.json
+!/data/teams.json
 *.sqlite
 *.db
+
+# Scratch files (created for various tests)
+/scratch/
 
 # PyInstaller build artifacts
 build/
