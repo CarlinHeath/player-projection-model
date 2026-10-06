@@ -2,7 +2,7 @@ import sqlite3
 import os
 from src.data_pipeline import fetch, clean, insert
 
-# Sota, Witt, Franklin Arias, Cole, Skenes, Kershaw, Ohtani, Miller, J. Ramirez, L. Walker
+# Soto, Witt, Franklin Arias, Cole, Skenes, Kershaw, Ohtani, Miller, J. Ramirez, L. Walker
 players = [665742, 677951, 808265, 543037, 694973, 477132, 660271, 695243, 608070, 123833]
 
 if os.path.exists("data/player_projection.db"):
@@ -23,6 +23,8 @@ insert.insert_data(connection, "teams", clean.clean_teams_json("data/teams.json"
 connection.commit()
 
 for player in players:
+    print(f"Loading player {player}")
+
     player_info = clean.clean_player_info(fetch.fetch_player_info(player))
     player_hitter_stats = clean.clean_hitter_stats(fetch.fetch_hitter_stats(player))
     player_pitching_stats = clean.clean_pitcher_stats(fetch.fetch_pitcher_stats(player))

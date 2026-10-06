@@ -1,5 +1,3 @@
-import sqlite3
-
 def insert_data(conn, table_name, data_list):
     cursor = conn.cursor()
 

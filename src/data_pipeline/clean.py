@@ -147,7 +147,7 @@ def clean_teams_json(teams_file_path):
 def _get_nested_data(dictionary, outer_key, inner_key):
     try:
         return dictionary.get(outer_key).get(inner_key)
-    except:
+    except AttributeError:
         return None
 
 def _create_date(dictionary, key):
@@ -161,15 +161,19 @@ def _create_date(dictionary, key):
 def _convert_height(height):
     try:
         feet, inches = height.replace('"', '').split("'")
-    except:
+    except AttributeError:
+        return None
+    except ValueError:
         return None
     try:    
         return (int(feet) * 12) + int(inches)
-    except:
+    except ValueError:
         return None
 
 def _convert_float(number):
     try:
         return float(number)
-    except:
+    except TypeError:
+        return None
+    except ValueError:
         return None
