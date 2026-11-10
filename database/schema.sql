@@ -50,8 +50,9 @@ CREATE TABLE hitting_season_stats (
     sacrifice_bunts int,
     sacrifice_flies int,
     catcher_interference int,
-    player_id int,
-    team_id int,
+    player_id int NOT NULL,
+    team_id int NOT NULL,
+    UNIQUE (player_id, season, team_id),
     FOREIGN KEY (player_id) REFERENCES players(player_id),
     FOREIGN KEY (team_id) REFERENCES teams(team_id)
 );
@@ -100,8 +101,9 @@ CREATE TABLE pitching_season_stats (
     home_runs_per_9 float,
     inherited_runners int,
     inherited_runners_scored int,
-    player_id int,
-    team_id int,
+    player_id int NOT NULL,
+    team_id int NOT NULL,
+    UNIQUE (player_id, season, team_id),
     FOREIGN KEY (player_id) REFERENCES players(player_id),
     FOREIGN KEY (team_id) REFERENCES teams(team_id)
 );
