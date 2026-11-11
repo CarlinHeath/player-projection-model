@@ -112,10 +112,12 @@ def test_stats_empty_response_is_falsy_so_the_pipeline_skips_it():
     assert not clean_pitcher_stats({"stats": []})
 
 
-def test_stats_bad_id_response_is_falsy():
-    # Observed: the fake-ID error dict has no "stats" key.
-    error_response = {"messageNumber": 10, "message": "Object not found", "traceId": "abc"}
-    assert not clean_hitter_stats(error_response)
+def test_stats_bad_id_response_looks_like_never_played():
+    # Observed: a fake ID on the stats endpoints returns 200 and {"stats": []},
+    # the same as a real player with no stats, so only the info endpoint can catch a bad ID.
+    fake_id_response = {"copyright": "...", "stats": []}
+    assert not clean_hitter_stats(fake_id_response)
+    assert not clean_pitcher_stats(fake_id_response)
 
 
 def test_stats_block_with_empty_splits_raises_index_error():
