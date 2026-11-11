@@ -23,7 +23,7 @@ CREATE TABLE teams (
 CREATE TABLE hitting_season_stats (
     stat_id INTEGER PRIMARY KEY,
     age int,
-    season varchar,
+    season varchar NOT NULL,
     games_played int,
     plate_appearances int,
     ground_outs int,
@@ -60,7 +60,7 @@ CREATE TABLE hitting_season_stats (
 CREATE TABLE pitching_season_stats (
     stat_id INTEGER PRIMARY KEY,
     age int,
-    season varchar,
+    season varchar NOT NULL,
     games_played int,
     games_started int,
     ground_outs int,
