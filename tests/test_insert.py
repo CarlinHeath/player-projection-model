@@ -100,6 +100,54 @@ def test_duplicate_player_raises_integrity_error(db):
         insert_player_data(db, "players", SOTO)
 
 
+# Season uniqueness: UNIQUE (player_id, season, team_id)
+
+def test_repeated_hitting_season_raises_integrity_error(db, teams_path):
+    # Loading the same player twice must fail, not silently double his stats.
+    insert_data(db, "teams", clean_teams_json(teams_path))
+    insert_player_data(db, "players", SOTO)
+    rows = clean_hitter_stats(load_fixture("soto_hitting.json"))
+    insert_data(db, "hitting_season_stats", rows)
+    with pytest.raises(sqlite3.IntegrityError):
+        insert_data(db, "hitting_season_stats", rows)
+
+
+def test_repeated_pitching_season_raises_integrity_error(db, teams_path):
+    # Same rule on the pitching table.
+    insert_data(db, "teams", clean_teams_json(teams_path))
+    insert_player_data(db, "players", SOTO)
+    row = {"season": "2024", "player_id": 665742, "team_id": 120}
+    insert_data(db, "pitching_season_stats", [row])
+    with pytest.raises(sqlite3.IntegrityError):
+        insert_data(db, "pitching_season_stats", [row])
+
+
+def test_traded_season_with_two_teams_is_allowed(db, teams_path):
+    # The rule must not be too strict: Soto's 2022 has one row per team.
+    insert_data(db, "teams", clean_teams_json(teams_path))
+    insert_player_data(db, "players", SOTO)
+    insert_data(db, "hitting_season_stats", [
+        {"season": "2022", "player_id": 665742, "team_id": 120},
+        {"season": "2022", "player_id": 665742, "team_id": 135},
+    ])
+    assert count_rows(db, "hitting_season_stats") == 2
+
+
+def test_stat_row_missing_team_id_raises_integrity_error(db):
+    # NOT NULL closes the gap where NULL team IDs would slip past UNIQUE.
+    insert_player_data(db, "players", SOTO)
+    with pytest.raises(sqlite3.IntegrityError):
+        insert_data(db, "hitting_season_stats", [{"season": "2022", "player_id": 665742, "team_id": None}])
+
+
+def test_stat_row_missing_season_raises_integrity_error(db, teams_path):
+    # Same gap for season: two NULL-season rows would both get past UNIQUE.
+    insert_data(db, "teams", clean_teams_json(teams_path))
+    insert_player_data(db, "players", SOTO)
+    with pytest.raises(sqlite3.IntegrityError):
+        insert_data(db, "pitching_season_stats", [{"season": None, "player_id": 665742, "team_id": 120}])
+
+
 # Foreign keys
 
 def test_stat_row_with_unknown_team_is_rejected_when_pragma_on(db):
