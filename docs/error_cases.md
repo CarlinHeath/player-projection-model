@@ -35,8 +35,8 @@ Status key: `[ ]` not tested or not decided, `[x]` tested or decided. Items star
 ## Fetch layer
 
 - [x] `fetch_player_info`, `fetch_hitter_stats`, `fetch_pitcher_stats` tested against real IDs; none failed.
-- [x] Fake ID on the info endpoint: no exception. The API returns normally with a dict containing `messageNumber`, `message`, `traceId` and no `people` key.
-- [ ] Fake ID on the hitting and pitching stats endpoints: save the raw output and compare its shape to the legitimate empty result below.
+- [x] Fake ID on the info endpoint: no exception. The API returns status 404 with a dict containing `messageNumber`, `message`, `timestamp`, `traceId` and no `people` key. `requests` does not raise on a 404, so `.json()` returns the error dict.
+- [x] Fake ID on the hitting and pitching stats endpoints: both return status 200 with `{"copyright": "...", "stats": []}`, identical to a real player with no stats (Arias, Skenes hitting). Tested in `test_stats_bad_id_response_looks_like_never_played`.
 - [ ] Soto through the pitching endpoint (position player who never pitched): empty `stats`, or a block with empty `splits`?
 - [ ] Use `save_json_to_file` to keep reference copies of each response shape.
 
@@ -113,7 +113,7 @@ All helpers
 - [x] Prospect with no MLB games: both stats responses come back as `{"stats": []}`.
 - [x] Skenes through the hitting endpoint: `{"stats": []}`.
 - [ ] Check for a `stats` block with an empty `splits` list from the real API (not yet observed). A hand-built one raises `IndexError` (tested).
-- [ ] `not original_data.get("stats")` is true for an empty list, a missing key, and the bad-ID error dict alike. Decide whether the pipeline can tell "never played" from "bad ID".
+- [x] Can the pipeline tell "never played" from "bad ID" using the stats endpoints? No: a fake ID returns the same `{"stats": []}` as a player with no stats. Only the info endpoint (404, no `people` key) can catch a bad ID, so any bad-ID check belongs there (see Pipeline).
 - [x] Early return: observed `TypeError: 'NoneType' object is not iterable` in the insert. The pipeline now skips empty results with a plain `if`, which handles both `None` and `[]`. The cleaners still return `None`.
 - [x] Two-way and pre-2022 pitchers: Ohtani has rows in both tables (9 hitting, 7 pitching), Kershaw has 13 hitting and 18 pitching, Cole has 7 hitting (2013 to 2019) and 13 pitching. Position players have no pitching rows, and Skenes and Miller have no hitting rows.
 - [ ] Rows for the current, in-progress season vs completed seasons.
@@ -170,7 +170,8 @@ All helpers
 - [x] Re-running the creation script raised `table players already exists` (observed). Decided: delete the `.db` at the start of each run.
 - [ ] Decide whether table creation is a function with an `if __name__ == "__main__":` guard that takes a connection, and whether the pipeline should ever create tables.
 - [x] `position` column on `hitting_season_stats` and `pitching_season_stats` had no source. Decided: removed.
-- [ ] Stat tables have no uniqueness rule on (`player_id`, `season`, `team_id`), so duplicate rows insert silently. Decide on a constraint or upsert. The 10-player load has no duplicate groups.
+- [x] Stat tables had no uniqueness rule, so duplicate rows inserted silently. Decided: `UNIQUE (player_id, season, team_id)` on both tables, with all three columns `NOT NULL` so NULLs cannot slip past it. A repeated insert now raises `IntegrityError`; a traded season with two teams is still allowed. Tested in `test_insert.py`.
+- [ ] Decide what the pipeline does when a rerun hits the uniqueness rule: stop, skip, or upsert.
 - [x] `teams` is filled from a saved `data/teams.json` (30 teams) before any player loads.
 - [x] Stat rows referencing teams missing from `teams`: checked for 10 players (Walker 1989 to 2005, Ramírez, Kershaw, Cole, Ohtani, Miller). None missing. Re-check as more players load.
 - [x] One `team_id` carries one franchise through renames and moves: Ramírez's 14 rows all use 114, and Walker's 1989 to 1994 Expos rows use 120. `teams` stores the current name only (114 is Cleveland Guardians, 120 is Washington Nationals, 133 is Athletics).
@@ -244,7 +245,9 @@ Goal: when `_create_date` or `_convert_height` turn bad data into `None`, leave 
 ## Network, cache, and scale
 
 - [ ] No internet: `requests` raises `ConnectionError` or `Timeout`. Fallback to cache is postponed.
-- [ ] Non-200 HTTP responses. Not yet observed; check what `.json()` does.
+- [x] Non-200 HTTP responses: first one observed is a 404 from the info endpoint for a fake ID. The body is still JSON, so `.json()` works and returns the error dict.
+- [ ] Decide whether to call `raise_for_status()` in fetch. It would turn a fake ID on the info endpoint into `HTTPError: 404` at fetch time (and change `test_player_info_bad_id_raises_key_error`), but would not catch a fake ID on the stats endpoints (they return 200). It would also catch server errors (500) and rate limiting (429), which may return HTML instead of JSON.
+- [ ] `requests.get` has no timeout by default, so a hung API call waits forever. Consider `timeout=10`.
 - [ ] Cache the raw response before cleaning, so the offline path runs `clean` and `insert` on the same shape.
 - [ ] Decide where cache-writing lives (the pipeline script), one file per player and data type vs one big file, and whether the cache is git-ignored or synced between devices.
 - [ ] Should a "not found" response ever be saved to the cache?
